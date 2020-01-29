@@ -13,6 +13,9 @@ const DEFAULT_CONFIG = {
 module.exports = bundler => {
     bundler.on('bundled', async(bundle) => {
 
+        if(bundler.options.env.handleAssets === undefined || bundler.options.env.handleAssets === false ) {
+            return
+        }
         // main asset and package dir, depending on version of parcel-bundler
         let mainAsset =
             bundler.mainAsset ||                                                // parcel < 1.8
@@ -113,10 +116,12 @@ module.exports = bundler => {
         const bundleDir = path.dirname(bundle.name || bundler.mainBundle.childBundles.values().next().value.name);
         for (let dir of config.staticPath) {
             const copyTo = dir.staticOutDir
-                ? path.join(bundleDir, dir.staticOutDir)
+                ? path.join(pkg.pkgdir, dir.staticOutDir)
                 : bundleDir;
             // merge global exclude glob with static path exclude glob
             const excludeGlob = (config.excludeGlob || []).concat((dir.excludeGlob || [])); 
+            console.log(`copying from: ${path.join(pkg.pkgdir, dir.staticPath)}`)
+            console.log(`copying to: ${copyTo}`)
             copyDir(path.join(pkg.pkgdir, dir.staticPath), copyTo, excludeGlob);
         }
 
